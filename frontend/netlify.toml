@@ -1,7 +1,7 @@
 
 [[redirects]]
   from = "/api/*"
-  to = "https://devlens-ai-1-0wvf.onrender.com/api/reviews/:splat"
+  to = "https://devlens-ai-1-0wvf.onrender.com/api/:splat"
   status = 200
   force = true
 
