@@ -30,7 +30,7 @@ DEBUG = os.getenv("DEBUG", "False").lower() in ("true", "1", "t")
 SECRET_KEY = os.getenv("SECRET_KEY")
 if not SECRET_KEY:
     if DEBUG:
-        SECRET_KEY = "django-insecure-dev-fallback-key-only-for-local-debugging"
+        SECRET_KEY = "cr3+qeiwbbi!sq5588b8^lq400o2&-15tzhitp)1w+*wl^^3-h"
     else:
         raise ValueError("The SECRET_KEY environment variable must be set in production.")
 
