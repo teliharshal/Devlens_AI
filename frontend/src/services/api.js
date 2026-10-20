@@ -1,7 +1,9 @@
 import axios from 'axios';
 
 // Read API base URL from Vite environment variables with development fallback
-const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || '/api';
+const API_BASE_URL =
+  import.meta.env.VITE_API_BASE_URL ||
+  'https://devlens-ai-1-0wvf.onrender.com/api';
 /**
  * Extracts a concise, user-friendly error message from Axios / DRF response errors.
  * Preserves the actual server feedback without exposing sensitive internals.
@@ -55,12 +57,13 @@ export const getErrorMessage = (error) => {
 };
 
 const api = axios.create({
-  baseURL: API_BASE_URL,
-  timeout: 60000, // 60 seconds for AI synchronous review
+  baseURL: API_BASE_URL.replace(/\/+$/, ''),
+  timeout: 60000,
   headers: {
     'Content-Type': 'application/json',
   },
 });
+
 
 api.interceptors.response.use(
   (response) => response,
