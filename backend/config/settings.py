@@ -41,6 +41,11 @@ if allowed_hosts_env:
 else:
     ALLOWED_HOSTS = ["127.0.0.1", "localhost"]
 
+# Always allow Render domains and local development
+for h in [".onrender.com", "localhost", "127.0.0.1"]:
+    if h not in ALLOWED_HOSTS:
+        ALLOWED_HOSTS.append(h)
+
 # Support Render external hostname automatically
 render_hostname = os.getenv("RENDER_EXTERNAL_HOSTNAME")
 if render_hostname and render_hostname not in ALLOWED_HOSTS:
@@ -99,6 +104,13 @@ if cors_env:
         cleaned = origin.strip().rstrip("/")
         if cleaned and cleaned not in CORS_ALLOWED_ORIGINS:
             CORS_ALLOWED_ORIGINS.append(cleaned)
+
+# Automatically permit preview and production frontend domains (Netlify, Vercel, Render)
+CORS_ALLOWED_ORIGIN_REGEXES = [
+    r"^https:\/\/.*\.netlify\.app$",
+    r"^https:\/\/.*\.vercel\.app$",
+    r"^https:\/\/.*\.onrender\.com$",
+]
 
 ROOT_URLCONF = 'config.urls'
 
@@ -196,7 +208,7 @@ STORAGES = {
 if not DEBUG:
     # Tell Django to trust the X-Forwarded-Proto header set by Render's reverse proxy
     SECURE_PROXY_SSL_HEADER = ('HTTP_X_FORWARDED_PROTO', 'https')
-    SECURE_SSL_REDIRECT = os.getenv('SECURE_SSL_REDIRECT', 'True').lower() in ('true', '1', 't')
+    SECURE_SSL_REDIRECT = os.getenv('SECURE_SSL_REDIRECT', 'False').lower() in ('true', '1', 't')
     SESSION_COOKIE_SECURE = True
     CSRF_COOKIE_SECURE = True
 

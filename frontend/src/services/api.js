@@ -1,9 +1,22 @@
 import axios from 'axios';
 
-// Read API base URL from Vite environment variables with development fallback
-const API_BASE_URL =
-  import.meta.env.VITE_API_BASE_URL ||
-  'https://devlens-ai-1-0wvf.onrender.com/api';
+// Determine the API base URL:
+// 1. If VITE_API_BASE_URL is explicitly set, use it.
+// 2. In local development (npm run dev), fallback to local Django server at http://127.0.0.1:8000/api.
+// 3. In production build, fallback to the deployed Render backend URL.
+const getBaseUrl = () => {
+  const envUrl = import.meta.env.VITE_API_BASE_URL;
+  if (envUrl && envUrl.trim() !== '') {
+    return envUrl.trim().replace(/\/+$/, '');
+  }
+  if (import.meta.env.DEV) {
+    return 'http://127.0.0.1:8000/api';
+  }
+  return 'https://devlens-ai-1-0wvf.onrender.com/api';
+};
+
+const API_BASE_URL = getBaseUrl();
+
 /**
  * Extracts a concise, user-friendly error message from Axios / DRF response errors.
  * Preserves the actual server feedback without exposing sensitive internals.
@@ -50,20 +63,19 @@ export const getErrorMessage = (error) => {
   }
 
   if (error.message === 'Network Error' || error.code === 'ERR_NETWORK') {
-    return 'Cannot connect to backend server. Please verify Django is running at http://127.0.0.1:8000 and CORS allows frontend requests.';
+    return `Cannot connect to backend server at ${API_BASE_URL}. Please verify the backend is running and CORS allows requests from this origin.`;
   }
 
   return error.message || 'An unexpected error occurred.';
 };
 
 const api = axios.create({
-  baseURL: API_BASE_URL.replace(/\/+$/, ''),
+  baseURL: API_BASE_URL,
   timeout: 60000,
   headers: {
     'Content-Type': 'application/json',
   },
 });
-
 
 api.interceptors.response.use(
   (response) => response,
