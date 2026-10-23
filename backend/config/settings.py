@@ -114,6 +114,15 @@ CORS_ALLOWED_ORIGIN_REGEXES = [
 
 ROOT_URLCONF = 'config.urls'
 
+# DRF global configuration
+REST_FRAMEWORK = {
+    # Return JSON for all errors (400, 403, 404, 405, 500) instead of Django's HTML pages
+    'EXCEPTION_HANDLER': 'reviews.exceptions.json_exception_handler',
+    'DEFAULT_RENDERER_CLASSES': [
+        'rest_framework.renderers.JSONRenderer',
+    ],
+}
+
 TEMPLATES = [
     {
         'BACKEND': 'django.template.backends.django.DjangoTemplates',
@@ -200,7 +209,11 @@ STORAGES = {
         "BACKEND": "django.core.files.storage.FileSystemStorage",
     },
     "staticfiles": {
-        "BACKEND": "whitenoise.storage.CompressedManifestStaticFilesStorage",
+        # CompressedStaticFilesStorage: compresses files but does NOT require
+        # a pre-built manifest, so it never crashes with "missing manifest entry".
+        # Switch to CompressedManifestStaticFilesStorage only after confirming
+        # collectstatic reliably runs to completion on every Render deploy.
+        "BACKEND": "whitenoise.storage.CompressedStaticFilesStorage",
     },
 }
 

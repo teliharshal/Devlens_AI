@@ -5,6 +5,9 @@ from rest_framework.response import Response
 from .models import CodeReview, ReviewIssue
 from .serializers import CodeReviewSerializer
 from .services.ai_service import analyze_code
+import logging
+
+logger = logging.getLogger(__name__)
 
 @api_view(['GET', 'POST'])
 def review_list(request):
@@ -45,9 +48,13 @@ def review_list(request):
                 return Response(CodeReviewSerializer(review).data, status=status.HTTP_201_CREATED)
                 
             except Exception as e:
+                logger.error("AI analysis failed for review %s: %s", review.id, str(e), exc_info=True)
                 review.status = 'failed'
                 review.save()
-                return Response({'error': 'An error occurred during AI analysis. Please try again.'}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+                return Response(
+                    {'error': 'AI analysis failed. The review has been saved with a failed status. Please try again.'},
+                    status=status.HTTP_500_INTERNAL_SERVER_ERROR
+                )
                 
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
@@ -56,7 +63,10 @@ def review_detail(request, pk):
     try:
         review = CodeReview.objects.get(pk=pk)
     except CodeReview.DoesNotExist:
-        return Response(status=status.HTTP_404_NOT_FOUND)
+        return Response(
+            {'error': f'Review with id {pk} does not exist.'},
+            status=status.HTTP_404_NOT_FOUND
+        )
         
     serializer = CodeReviewSerializer(review)
     return Response(serializer.data)

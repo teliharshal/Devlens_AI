@@ -26,8 +26,12 @@ export const getErrorMessage = (error) => {
   if (typeof error === 'string') return error;
 
   if (error.response) {
-    const data = error.response.data;
-    if (data) {
+    const { status, data } = error.response;
+
+    // Never show raw HTML responses (Django error pages) to the user
+    const isHtml = typeof data === 'string' && data.trim().startsWith('<');
+
+    if (!isHtml && data) {
       if (typeof data === 'string') return data;
       if (data.error && typeof data.error === 'string') return data.error;
       if (data.detail && typeof data.detail === 'string') return data.detail;
@@ -49,17 +53,14 @@ export const getErrorMessage = (error) => {
       }
     }
 
-    if (error.response.status === 404) {
-      return 'The requested review was not found (404).';
-    }
-    if (error.response.status >= 500) {
-      return 'Backend server error (500). Please check Django server logs.';
-    }
-    return `Server responded with status ${error.response.status}.`;
+    if (status === 400) return 'Invalid submission. Please check your inputs and try again.';
+    if (status === 404) return 'The requested review was not found (404).';
+    if (status === 500) return 'Backend server error (500). The AI analysis service may be unavailable — please try again shortly.';
+    return `Server responded with status ${status}.`;
   }
 
   if (error.code === 'ECONNABORTED' || (error.message && error.message.toLowerCase().includes('timeout'))) {
-    return 'The request timed out. The backend or AI model took too long to respond.';
+    return 'The request timed out. The AI analysis is taking too long — please try again.';
   }
 
   if (error.message === 'Network Error' || error.code === 'ERR_NETWORK') {
